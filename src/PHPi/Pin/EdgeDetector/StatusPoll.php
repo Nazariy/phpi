@@ -32,7 +32,7 @@ class StatusPoll implements EdgeDetectorInterface
      *
      * Unfortunately I haven't found a clean way to get the actual interrupts from PHP... yet.
      */
-    const DEFAULT_POLL_INTERVAL = 0.01;
+    public const DEFAULT_POLL_INTERVAL = 0.01;
 
 
     /**
@@ -57,8 +57,16 @@ class StatusPoll implements EdgeDetectorInterface
      */
     private $pins;
 
+    /**
+     * @var float
+     */
     private $poll_interval;
 
+    /**
+     * StatusPoll constructor.
+     * @param Board $board
+     * @throws \Calcinai\PHPi\Exception\InternalFailureException
+     */
     public function __construct(Board $board)
     {
         $this->board = $board;
@@ -67,19 +75,27 @@ class StatusPoll implements EdgeDetectorInterface
         $this->poll_interval = self::DEFAULT_POLL_INTERVAL;
     }
 
-    public function addPin(Pin $pin)
+    /**
+     * addPin
+     * @param Pin $pin
+     */
+    public function addPin(Pin $pin): void
     {
         /** @noinspection PhpUnusedLocalVariableInspection */
-        list($bank, $mask, $shift) = $pin->getAddressMask();
+        [$bank, $mask, $shift] = $pin->getAddressMask();
         $this->pins[$bank][$shift] = $pin;
 
         $this->updateDetectRegisters();
     }
 
-    public function removePin(Pin $pin)
+    /**
+     * removePin
+     * @param Pin $pin
+     */
+    public function removePin(Pin $pin): void
     {
         /** @noinspection PhpUnusedLocalVariableInspection */
-        list($bank, $mask, $shift) = $pin->getAddressMask();
+        [$bank, $mask, $shift] = $pin->getAddressMask();
         unset($this->pins[$bank][$shift]);
 
         $this->updateDetectRegisters();
@@ -88,7 +104,7 @@ class StatusPoll implements EdgeDetectorInterface
     /**
      * Update the detect registers and start/stop the polling if necessary.
      */
-    private function updateDetectRegisters()
+    private function updateDetectRegisters(): void
     {
 
         //Initialise the banks with nothing set
@@ -119,10 +135,8 @@ class StatusPoll implements EdgeDetectorInterface
 
     /**
      * needs to be public so can be called from timer context
-     *
-     * @return bool
      */
-    public function checkStatusRegisters()
+    public function checkStatusRegisters(): void
     {
 
         foreach (Register\GPIO::$GPEDS as $bank => $address) {
@@ -135,20 +149,17 @@ class StatusPoll implements EdgeDetectorInterface
             //This used to be a one-liner.  Decided to stop being clever for clarity.
             for ($bit_position = 0; $shifted = $bank_event_bits >> $bit_position; $bit_position++) {
                 //The $bit_position bit is set
-                if ($shifted & 1) {
-                    if (isset($this->pins[$bank][$bit_position])) {
-                        //This is a bit of a double operation here, but really the best that can be done.
-                        /** @var Pin $pin */
-                        $pin = $this->pins[$bank][$bit_position];
-                        //Read pin level, which internally processes it if it's new.
+                if ($shifted & 1 && isset($this->pins[$bank][$bit_position])) {
+                    //This is a bit of a double operation here, but really the best that can be done.
+                    /** @var Pin $pin */
+                    $pin = $this->pins[$bank][$bit_position];
+                    //Read pin level, which internally processes it if it's new.
 
-                        //Toggle the pin level since something has changed (even though if we read it now we may have missed it).
-                        $pin->invertInternalLevel();
-                        //Read the level and set it to whatever it is now, it will usually be the toggled state, but if the rise/fall event
-                        //was too fast for us to observe, it'll bring the pin back to normal.
-                        $pin->getLevel();
-                    }
-
+                    //Toggle the pin level since something has changed (even though if we read it now we may have missed it).
+                    $pin->invertInternalLevel();
+                    //Read the level and set it to whatever it is now, it will usually be the toggled state, but if the rise/fall event
+                    //was too fast for us to observe, it'll bring the pin back to normal.
+                    $pin->getLevel();
                 }
             }
 
@@ -158,23 +169,30 @@ class StatusPoll implements EdgeDetectorInterface
 
     }
 
-
-    public function isActive()
+    /**
+     * isActive
+     * @return bool
+     */
+    public function isActive(): bool
     {
         return $this->timer !== null;
     }
 
-    private function start()
+    /**
+     * start
+     */
+    private function start(): void
     {
-
         if ($this->isActive()) {
             $this->stop();
         }
-
         $this->timer = $this->board->getLoop()->addPeriodicTimer($this->poll_interval, [$this, 'checkStatusRegisters']);
     }
 
-    private function stop()
+    /**
+     * stop
+     */
+    private function stop(): void
     {
         $this->timer->cancel();
         $this->timer = null;

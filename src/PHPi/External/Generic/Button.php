@@ -29,28 +29,39 @@ class Button extends Input
     private $hold_period;
 
 
-    const DEFAULT_HOLD_PERIOD  = 1;
-    const DEFAULT_PRESS_PERIOD = 0.05;
+    public const DEFAULT_HOLD_PERIOD = 1;
+    public const DEFAULT_PRESS_PERIOD = 0.05;
 
     /**
      * Period (in seconds) to ignore subsequent press events
      */
-    const DEFAULT_DEBOUNCE_PERIOD = 0.25;
+    public const DEFAULT_DEBOUNCE_PERIOD = 0.25;
 
-    const EVENT_PRESS   = 'press';
-    const EVENT_HOLD    = 'hold';
-    const EVENT_RELEASE = 'release';
+    public const EVENT_PRESS = 'press';
+    public const EVENT_HOLD = 'hold';
+    public const EVENT_RELEASE = 'release';
     /**
      * @var float
      */
     private $debounce_period;
 
 
-    public function __construct(Pin $pin, $active_high = true,
+    /**
+     * Button constructor.
+     * @param Pin $pin
+     * @param bool $active_high
+     * @param float $press_period
+     * @param int $hold_period
+     * @param float $debounce_period
+     * @throws \Calcinai\PHPi\Exception\InvalidPinFunctionException
+     */
+    public function __construct(
+        Pin $pin,
+        $active_high = true,
         $press_period = self::DEFAULT_PRESS_PERIOD,
         $hold_period = self::DEFAULT_HOLD_PERIOD,
-        $debounce_period = self::DEFAULT_DEBOUNCE_PERIOD)
-    {
+        $debounce_period = self::DEFAULT_DEBOUNCE_PERIOD
+    ) {
         parent::__construct($pin);
 
         $this->press_period = $press_period;
@@ -64,7 +75,7 @@ class Button extends Input
      * Function to setup the listerner on pin change.  There is a 'once' listener because it needs to be removed and
      * re-added for debounce.  This could also be changed to have some 'debouncing' flag etc.
      */
-    private function registerPressEvent()
+    private function registerPressEvent(): void
     {
         //Do it like this so it can be hidden from userspace
         $press_event = $this->active_high ? Pin::EVENT_LEVEL_HIGH : Pin::EVENT_LEVEL_LOW;
@@ -83,7 +94,7 @@ class Button extends Input
      *
      * Internal function for dealing with a press (high or low) event on the pin
      */
-    private function onPinPressEvent()
+    private function onPinPressEvent(): void
     {
 
         //Mainly just connecting up events here
@@ -107,7 +118,11 @@ class Button extends Input
         });
     }
 
-    public function eventListenerAdded($event_name)
+    /**
+     * eventListenerAdded
+     * @param $event_name
+     */
+    public function eventListenerAdded($event_name): void
     {
         //Only interested in the first event added, no advantage to only firing the onces that are being listened to
         if ($this->countListeners() !== 1) {
@@ -116,6 +131,4 @@ class Button extends Input
 
         $this->registerPressEvent();
     }
-
-
 }

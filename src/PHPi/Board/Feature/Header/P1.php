@@ -4,12 +4,13 @@
  * @package    calcinai/phpi
  * @author     Michael Calcinai <michael@calcin.ai>
  */
+
 namespace Calcinai\PHPi\Board\Feature\Header;
 
 trait P1
 {
 
-    public function getPhysicalPins()
+    public function getPhysicalPins(): array
     {
         return [
             'P1' => [

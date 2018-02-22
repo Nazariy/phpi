@@ -10,14 +10,14 @@ namespace Calcinai\PHPi\Board\Feature\Header;
 class PhysicalPin
 {
 
-    const SUPPLY_3V3 = '3v3';
-    const SUPPLY_5V  = '5v';
-    const SUPPLY_GND = 'gnd';
+    public const SUPPLY_3V3 = '3v3';
+    public const SUPPLY_5V = '5v';
+    public const SUPPLY_GND = 'gnd';
 
-    const DNC   = 'dnc';
-    const GPIO  = 'gpio';
-    const ID_SC = 'id_sc';
-    const ID_SD = 'id_sd';
+    public const DNC = 'dnc';
+    public const GPIO = 'gpio';
+    public const ID_SC = 'id_sc';
+    public const ID_SD = 'id_sd';
 
 
     public $physical_number;

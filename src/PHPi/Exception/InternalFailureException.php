@@ -6,7 +6,7 @@
 
 namespace Calcinai\PHPi\Exception;
 
-class InternalFailureException extends \Exception
+class InternalFailureException extends \RuntimeException
 {
 
 }

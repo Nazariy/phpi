@@ -13,15 +13,12 @@ use React\EventLoop\Timer\TimerInterface;
 
 class Channel
 {
-
     use EventEmitterTrait;
 
-    const MODE_SINGLE_ENDED = 1;
-    const MODE_DIFFERENTIAL = 0;
-
-    const DEFAULT_UPDATE_INTERVAL = 0.04; //25Hz
-
-    const EVENT_CHANGE = 'change';
+    public const MODE_SINGLE_ENDED = 1;
+    public const MODE_DIFFERENTIAL = 0;
+    public const DEFAULT_UPDATE_INTERVAL = 0.04; //25Hz
+    public const EVENT_CHANGE = 'change';
 
     /**
      * @var MCP300x
@@ -39,12 +36,9 @@ class Channel
 
     public function __construct(MCP300x $adc, $channel_number)
     {
-
         $this->adc = $adc;
         $this->channel_number = $channel_number;
         $this->mode = self::MODE_SINGLE_ENDED;
-
-        $this->internal_value = null;
     }
 
     /**
@@ -52,7 +46,7 @@ class Channel
      *
      * @return int
      */
-    public function read()
+    public function read(): int
     {
 
         $channel_bits = $this->mode << 7 | ($this->channel_number << 4);
@@ -77,16 +71,17 @@ class Channel
 
 
     //Meta events for setting up polling
-    public function eventListenerAdded()
+    public function eventListenerAdded(): void
     {
         //If it's the first event
         if ($this->countListeners(self::EVENT_CHANGE) === 1) {
-            $this->poll_timer = $this->adc->getSPI()->getBoard()->getLoop()->addPeriodicTimer(self::DEFAULT_UPDATE_INTERVAL, [$this, 'read']);
+            $this->poll_timer = $this->adc->getSPI()->getBoard()->getLoop()->addPeriodicTimer(self::DEFAULT_UPDATE_INTERVAL,
+                [$this, 'read']);
         }
     }
 
 
-    public function eventListenerRemoved()
+    public function eventListenerRemoved(): void
     {
         //If it's the last event
         if ($this->countListeners(self::EVENT_CHANGE) === 0) {

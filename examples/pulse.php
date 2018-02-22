@@ -2,14 +2,14 @@
 
 include __DIR__.'/../vendor/autoload.php';
 
-use Calcinai\PHPi\Pin\PinFunction;
+use Calcinai\PHPi\Pin\PinInterface;
 
 
 $loop = \React\EventLoop\Factory::create();
 $board = \Calcinai\PHPi\Factory::create($loop);
 
 $pin = $board->getPin(18) //BCM pin number
-             ->setFunction(PinFunction::OUTPUT);
+             ->setFunction(PinInterface::OUTPUT);
 
 //Seems to max out at about 4kHz i Pi3
 $loop->addPeriodicTimer($time = 1, function() use($loop, $pin, $time){

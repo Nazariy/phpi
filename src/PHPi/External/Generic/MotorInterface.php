@@ -10,8 +10,8 @@ namespace Calcinai\PHPi\External\Generic;
 interface MotorInterface
 {
 
-    const DIRECTION_FORWARD = 'forward';
-    const DIRECTION_REVERSE = 'reverse';
+    public const DIRECTION_FORWARD = 'forward';
+    public const DIRECTION_REVERSE = 'reverse';
 
     public function forward();
 

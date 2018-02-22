@@ -67,11 +67,11 @@ class Stepper implements MotorInterface
     private $acceleration;
 
 
-    const DEFAULT_SPEED = 25;
+    public const DEFAULT_SPEED = 25;
 
-    const MODE_WAVE = 0;
-    const MODE_FULL = 1;
-    const MODE_HALF = 2;
+    public const MODE_WAVE = 0;
+    public const MODE_FULL = 1;
+    public const MODE_HALF = 2;
 
     static $MODE_PATTERNS = [
         self::MODE_WAVE => [0b1000, 1], //offset one bit per phase
@@ -89,12 +89,14 @@ class Stepper implements MotorInterface
 
     /**
      * @param Pin[] $pins
+     * @throws InvalidModeException
+     * @throws \Calcinai\PHPi\Exception\InvalidPinFunctionException
      */
     public function __construct(array $pins)
     {
 
         foreach ($pins as $pin) {
-            $this->phases[] = $pin->setFunction(Pin\PinFunction::OUTPUT);
+            $this->phases[] = $pin->setFunction(Pin\PinInterface::OUTPUT);
         }
 
         $this->setMode(self::MODE_FULL);
@@ -102,14 +104,19 @@ class Stepper implements MotorInterface
     }
 
 
-    public function setMode($mode)
+    /**
+     * setMode
+     * @param $mode
+     * @throws InvalidModeException
+     */
+    public function setMode($mode): void
     {
 
         if (!isset(static::$MODE_PATTERNS[$mode])) {
-            throw new InvalidModeException();
+            throw new InvalidModeException('Invalid mode selected');
         }
 
-        list($this->mask, $this->offset) = static::$MODE_PATTERNS[$mode];
+        [$this->mask, $this->offset] = static::$MODE_PATTERNS[$mode];
 
         //Find out how many bits in the pattern.
         //Need MSB high for this to work.
@@ -121,9 +128,8 @@ class Stepper implements MotorInterface
      * Speed in steps/second
      *
      * @param $speed
-     * @return $this
      */
-    public function setSpeed($speed)
+    public function setSpeed($speed): void
     {
         $this->speed = $speed;
         $this->period = 1 / $speed;
@@ -137,7 +143,7 @@ class Stepper implements MotorInterface
      * @param $direction
      * @return $this
      */
-    public function setDirection($direction)
+    public function setDirection($direction): self
     {
         $this->direction = $direction;
         return $this;
@@ -156,21 +162,23 @@ class Stepper implements MotorInterface
      *
      * @param $acceleration
      */
-    public function setAcceleration($acceleration)
+    public function setAcceleration($acceleration): void
     {
         $this->acceleration = $acceleration;
     }
 
+    /**
+     * forward
+     * @return Stepper
+     */
     public function forward()
     {
-        return $this->setDirection(self::DIRECTION_FORWARD)
-            ->restart();
+        return $this->setDirection(self::DIRECTION_FORWARD)->restart();
     }
 
     public function reverse()
     {
-        return $this->setDirection(self::DIRECTION_REVERSE)
-            ->restart();
+        return $this->setDirection(self::DIRECTION_REVERSE)->restart();
     }
 
     public function stop()
@@ -196,28 +204,33 @@ class Stepper implements MotorInterface
         $last_step = $start_time = microtime(true);
         $is_accelerating = $this->acceleration !== null;
 
-        $this->timer = $loop->addPeriodicTimer($this->period, function () use ($start_time, &$last_step, &$is_accelerating) {
+        $this->timer = $loop->addPeriodicTimer(
+            $this->period,
+            function () use ($start_time, &$last_step, &$is_accelerating) {
 
-            if ($is_accelerating) {
-                $ratio = (microtime(true) - $start_time) / $this->acceleration;
+                if ($is_accelerating) {
+                    $ratio = (microtime(true) - $start_time) / $this->acceleration;
 
-                if ($ratio > 1) {
-                    $is_accelerating = false;
+                    if ($ratio > 1) {
+                        $is_accelerating = false;
 
-                } elseif (microtime(true) - $last_step < 1 / ($ratio * $this->speed)) {
-                    return;
-                } else {
-                    $last_step = microtime(true);
+                    } elseif (microtime(true) - $last_step < 1 / ($ratio * $this->speed)) {
+                        return;
+                    } else {
+                        $last_step = microtime(true);
+                    }
                 }
-            }
 
-            $this->step();
-        });
+                $this->step();
+            });
 
         return $this;
     }
 
-
+    /**
+     * restart
+     * @return $this
+     */
     public function restart()
     {
         return $this->stop()->start();
@@ -226,8 +239,9 @@ class Stepper implements MotorInterface
     /**
      * Shift the pattern to the next phase
      * This really is write-only code!
+     * @throws \Calcinai\PHPi\Exception\InvalidPinFunctionException
      */
-    public function step()
+    public function step(): self
     {
 
         //Mask for all bits in sequence
@@ -236,9 +250,9 @@ class Stepper implements MotorInterface
         //Preform a circular shift of the pattern in the appropriate direction
         //This is for the main pattern
         if ($this->direction === self::DIRECTION_FORWARD) {
-            $shifted = $this->mask << 1 | $this->mask >> ($this->phase_msb);
+            $shifted = $this->mask << 1 | $this->mask >> $this->phase_msb;
         } else {
-            $shifted = $this->mask >> 1 | $this->mask << ($this->phase_msb);
+            $shifted = $this->mask >> 1 | $this->mask << $this->phase_msb;
         }
 
         //Mask off the new 'mask' with however many bits are in the sequence
@@ -246,14 +260,18 @@ class Stepper implements MotorInterface
 
         //Shift all the bits back out to the pins
         foreach ($this->phases as $phase) {
-            $shifted & 1 ? $phase->high() : $phase->low();
+            ($shifted & 1) ? $phase->high() : $phase->low();
             $shifted >>= $this->offset;
         }
 
         return $this;
     }
 
-    public function isRunning()
+    /**
+     * isRunning
+     * @return bool
+     */
+    public function isRunning(): bool
     {
         return $this->timer instanceof TimerInterface && $this->timer->isActive();
     }

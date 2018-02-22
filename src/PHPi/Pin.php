@@ -8,27 +8,26 @@ namespace Calcinai\PHPi;
 
 use Calcinai\PHPi\Exception\InvalidPinFunctionException;
 use Calcinai\PHPi\Peripheral\Register;
-use Calcinai\PHPi\Pin\PinFunction;
+use Calcinai\PHPi\Pin\PinInterface;
 use Calcinai\PHPi\Traits\EventEmitterTrait;
 
 class Pin
 {
-
     use EventEmitterTrait;
 
-    const LEVEL_LOW  = 0;
-    const LEVEL_HIGH = 1;
+    public const LEVEL_LOW = 0;
+    public const LEVEL_HIGH = 1;
 
-    const PULL_NONE = 0b00;
-    const PULL_DOWN = 0b01;
-    const PULL_UP   = 0b10;
+    public const PULL_NONE = 0b00;
+    public const PULL_DOWN = 0b01;
+    public const PULL_UP = 0b10;
 
 
-    const EVENT_FUNCTION_CHANGE = 'function.change';
+    public const EVENT_FUNCTION_CHANGE = 'function.change';
 
-    const EVENT_LEVEL_CHANGE = 'level.change';
-    const EVENT_LEVEL_HIGH   = 'level.high';
-    const EVENT_LEVEL_LOW    = 'level.low';
+    public const EVENT_LEVEL_CHANGE = 'level.change';
+    public const EVENT_LEVEL_HIGH = 'level.high';
+    public const EVENT_LEVEL_LOW = 'level.low';
 
 
     /**
@@ -36,6 +35,9 @@ class Pin
      */
     private $board;
 
+    /**
+     * @var Register\GPIO
+     */
     private $gpio_register;
 
     /**
@@ -66,14 +68,21 @@ class Pin
      */
     private $internal_level;
 
-
+    /**
+     * @var array
+     */
     private $mask_cache = [];
 
+    /**
+     * Pin constructor.
+     * @param Board $board
+     * @param $pin_number
+     * @throws \Calcinai\PHPi\Exception\InternalFailureException
+     */
     public function __construct(Board $board, $pin_number)
     {
         $this->board = $board;
         $this->gpio_register = $board->getGPIORegister();
-
         $this->pin_number = $pin_number;
 
         //This needs to be done since it could be in any state, and the user would never know.
@@ -93,15 +102,15 @@ class Pin
      * @return $this
      * @throws InvalidPinFunctionException
      */
-    public function setFunction($function)
+    public function setFunction($function): self
     {
 
-        if (is_string($function)) {
+        if (\is_string($function)) {
             $function = $this->getAltCodeForPinFunction($function);
         }
 
         $this->setInternalFunction($function);
-        list($bank, $mask, $shift) = $this->getAddressMask(3);
+        [$bank, $mask, $shift] = $this->getAddressMask(3);
 
         //This feels like its getting messy!  There must be a way to do this with ^=
         $reg = $this->gpio_register[Register\GPIO::$GPFSEL[$bank]];
@@ -114,11 +123,12 @@ class Pin
     /**
      * Function to cache internal function and emit events
      *
+     * @param string $function
      * @return int
      */
-    private function setInternalFunction($function)
+    private function setInternalFunction($function): int
     {
-        if (isset($this->internal_function)) {
+        if ($this->internal_function !== null) {
             if ($this->internal_function !== $function) {
                 //This has to be done so you don't get recursion if you access ->getFunction from within the event.
                 $old_function = $this->internal_function;
@@ -138,10 +148,10 @@ class Pin
     /**
      * @return int
      */
-    public function getFunction()
+    public function getFunction(): int
     {
 
-        list($bank, $mask, $shift) = $this->getAddressMask(3);
+        [$bank, $mask, $shift] = $this->getAddressMask(3);
         $function = ($this->gpio_register[Register\GPIO::$GPFSEL[$bank]] & $mask) >> $shift;
 
         $this->setInternalFunction($function);
@@ -152,20 +162,21 @@ class Pin
     /**
      * @return string|null
      */
-    public function getFunctionName()
+    public function getFunctionName(): ?string
     {
 
         $function = $this->getFunction();
-        if ($function === PinFunction::INPUT) {
+        if ($function === PinInterface::INPUT) {
             return 'in';
-        } elseif ($function === PinFunction::OUTPUT) {
+        }
+        if ($function === PinInterface::OUTPUT) {
             return 'out';
         }
 
         $matrix = $this->board->getPinFunctionMatrix();
 
         //Return null, not false
-        return array_search($function, $matrix[$this->pin_number]) ?: null;
+        return array_search($function, $matrix[$this->pin_number], false) ?: null;
     }
 
     /**
@@ -190,7 +201,7 @@ class Pin
      *
      * @return array
      */
-    public function getAltFunctions()
+    public function getAltFunctions(): array
     {
         $matrix = $this->board->getPinFunctionMatrix();
 
@@ -205,14 +216,18 @@ class Pin
      * @return bool
      * @throws InvalidPinFunctionException
      */
-    public function assertFunction(array $valid_functions)
+    public function assertFunction(array $valid_functions): bool
     {
-        if (!in_array($this->getFunction(), $valid_functions)) {
-            throw new InvalidPinFunctionException(sprintf('Pin %s is set to invalid function (%s) for ->%s(). Supported functions are [%s]',
-                $this->pin_number,
-                $this->getFunction(),
-                debug_backtrace()[1]['function'],
-                implode(',', $valid_functions)));
+        if (!\in_array($this->getFunction(), $valid_functions, true)) {
+            throw new InvalidPinFunctionException(
+                sprintf(
+                    'Pin %s is set to invalid function (%s) for ->%s(). Supported functions are [%s]',
+                    $this->pin_number,
+                    $this->getFunction(),
+                    debug_backtrace()[1]['function'],
+                    implode(',', $valid_functions)
+                )
+            );
         }
         return true;
     }
@@ -225,15 +240,15 @@ class Pin
      * @return $this
      * @throws InvalidPinFunctionException
      */
-    public function high($fast_mode = false)
+    public function high($fast_mode = false): self
     {
 
         if (!$fast_mode) {
-            $this->assertFunction([PinFunction::OUTPUT]);
+            $this->assertFunction([PinInterface::OUTPUT]);
             $this->setInternalLevel(self::LEVEL_HIGH);
         }
 
-        list($bank, $mask) = $this->getAddressMask();
+        [$bank, $mask] = $this->getAddressMask();
         $this->gpio_register[Register\GPIO::$GPSET[$bank]] = $mask;
 
         return $this;
@@ -246,27 +261,42 @@ class Pin
      * @return $this
      * @throws InvalidPinFunctionException
      */
-    public function low($fast_mode = false)
+    public function low($fast_mode = false): self
     {
 
         if (!$fast_mode) {
-            $this->assertFunction([PinFunction::OUTPUT]);
+            $this->assertFunction([PinInterface::OUTPUT]);
             $this->setInternalLevel(self::LEVEL_LOW);
         }
 
-        list($bank, $mask) = $this->getAddressMask();
+        [$bank, $mask] = $this->getAddressMask();
         $this->gpio_register[Register\GPIO::$GPCLR[$bank]] = $mask;
 
         return $this;
     }
 
     /**
-     *
-     * @return int
+     * hasInternalLevel
+     * @return bool
      */
-    private function setInternalLevel($level)
+    protected function hasInternalLevel(): bool
     {
-        if (isset($this->internal_level)) {
+        return null !== $this->internal_level;
+    }
+
+    public function getInternalLevel(): ?Pin
+    {
+        return $this->internal_level;
+    }
+
+    /**
+     *
+     * @param $level
+     * @return mixed
+     */
+    public function setInternalLevel($level)
+    {
+        if ($this->hasInternalLevel()) {
             if ($this->internal_level !== $level) {
                 //This has to be done so you don't get recursion if you access ->getFunction from within the event.
                 $this->internal_level = $level;
@@ -287,7 +317,7 @@ class Pin
      *
      * Designed for the edge detector to hit when it detects a change.
      */
-    public function invertInternalLevel()
+    public function invertInternalLevel(): void
     {
         $this->setInternalLevel($this->internal_level === self::LEVEL_HIGH ? self::LEVEL_LOW : self::LEVEL_HIGH);
     }
@@ -296,15 +326,14 @@ class Pin
     /**
      * Read the actual pin level from the register
      *
-     * @return int
-     * @throws InvalidPinFunctionException
+     * @return mixed
      */
     public function getLevel()
     {
         //Can actually be any state
-        //$this->assertFunction([PinFunction::INPUT, PinFunction::OUTPUT]);
+        //$this->assertFunction([PinInterface::INPUT, PinInterface::OUTPUT]);
 
-        list($bank, $mask, $shift) = $this->getAddressMask();
+        [$bank, $mask, $shift] = $this->getAddressMask();
         //Record observed level and return
         $level = ($this->gpio_register[Register\GPIO::$GPLEV[$bank]] & $mask) >> $shift;
 
@@ -319,12 +348,12 @@ class Pin
      * @return $this
      * @throws InvalidPinFunctionException
      */
-    public function setPull($direction)
+    public function setPull($direction): self
     {
-        $this->assertFunction([PinFunction::INPUT]);
+        $this->assertFunction([PinInterface::INPUT]);
         $this->pull = $direction;
 
-        list($bank, $mask) = $this->getAddressMask();
+        [$bank, $mask] = $this->getAddressMask();
         $this->gpio_register[Register\GPIO::GPPUD] = $this->pull;
         usleep(5); //How long are 150 cycles?
         $this->gpio_register[Register\GPIO::$GPPUDCLK[$bank]] = $mask;
@@ -334,7 +363,7 @@ class Pin
         return $this;
     }
 
-    public function getPull()
+    public function getPull(): int
     {
         return $this->pull;
     }
@@ -348,7 +377,7 @@ class Pin
      * @param int $bits
      * @return array[$bank, $mask, $shift]
      */
-    public function getAddressMask($bits = 1)
+    public function getAddressMask($bits = 1): array
     {
 
         if (!isset($this->mask_cache[$bits])) {
@@ -364,12 +393,12 @@ class Pin
     }
 
 
-    public function getPinNumber()
+    public function getPinNumber(): int
     {
         return $this->pin_number;
     }
 
-    public function getBoard()
+    public function getBoard(): Board
     {
         return $this->board;
     }
@@ -380,7 +409,7 @@ class Pin
      *
      * @param $level
      */
-    public function onPinChangeEvent($level)
+    public function onPinChangeEvent($level): void
     {
         //Mainly just connecting up events here
         if ($level === self::LEVEL_HIGH) {
@@ -391,7 +420,7 @@ class Pin
     }
 
     //Meta events for setting up polling
-    public function eventListenerAdded()
+    public function eventListenerAdded(): void
     {
         //If it's the first event, chain listeners and add to edge detect
         if ($this->countListeners() === 1) {
@@ -401,7 +430,7 @@ class Pin
     }
 
 
-    public function eventListenerRemoved()
+    public function eventListenerRemoved(): void
     {
         //If it's the last event, there's the internal one for change->high/low so this is 1
         if ($this->countListeners() === 1) {

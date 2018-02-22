@@ -13,6 +13,7 @@ use React\EventLoop\LoopInterface;
 
 class Mock extends Board
 {
+    public const NAME = 'Mock Board';
 
     public function __construct(LoopInterface $loop)
     {
@@ -26,19 +27,14 @@ class Mock extends Board
 
     }
 
-    public static function getPeripheralBaseAddress()
+    public static function getPeripheralBaseAddress(): int
     {
         return 0;
     }
 
-    public static function getPinFunctionMatrix()
+    public static function getPinFunctionMatrix(): array
     {
         return [];
 
-    }
-
-    public static function getBoardName()
-    {
-        return 'Mock Board';
     }
 }

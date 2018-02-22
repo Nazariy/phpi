@@ -15,9 +15,9 @@ abstract class AbstractRegister implements RegisterInterface, \ArrayAccess
     /**
      * Apparently this is for 'safety'
      */
-    const BCM_PASSWORD = 0x5A000000;
+    public const BCM_PASSWORD = 0x5A000000;
 
-    const MMAP_BLOCK_SIZE = 1024;
+    public const MMAP_BLOCK_SIZE = 1024;
 
     private $mmap;
 
@@ -27,6 +27,7 @@ abstract class AbstractRegister implements RegisterInterface, \ArrayAccess
      * AbstractRegister constructor.
      * @param BoardInterface $board
      * @throws InternalFailureException
+     * @throws \ReflectionException
      */
     public function __construct(BoardInterface $board)
     {
@@ -39,14 +40,17 @@ abstract class AbstractRegister implements RegisterInterface, \ArrayAccess
 
             if ($this->mmap === false) {
                 $reg_reflect = new \ReflectionClass($this);
-                throw new InternalFailureException(sprintf('Couldn\'t map %s register.  You must either run as root, or be a member of the %s group.', $reg_reflect->getShortName(), posix_getgrgid(filegroup($dm_file))['name']));
+                throw new InternalFailureException(sprintf('Couldn\'t map %s register.  You must either run as root, or be a member of the %s group.',
+                    $reg_reflect->getShortName(), posix_getgrgid(filegroup($dm_file))['name']));
             }
         } else {
-            $this->mmap = @mmap_open('/dev/mem', self::MMAP_BLOCK_SIZE, $board->getPeripheralBaseAddress() + static::getOffset());
+            $this->mmap = @mmap_open('/dev/mem', self::MMAP_BLOCK_SIZE,
+                $board->getPeripheralBaseAddress() + static::getOffset());
 
             if ($this->mmap === false) {
                 $reg_reflect = new \ReflectionClass($this);
-                throw new InternalFailureException(sprintf('Couldn\'t map %s register. Are you running as root?', $reg_reflect->getShortName()));
+                throw new InternalFailureException(sprintf('Couldn\'t map %s register. Are you running as root?',
+                    $reg_reflect->getShortName()));
             }
         }
 
@@ -58,7 +62,7 @@ abstract class AbstractRegister implements RegisterInterface, \ArrayAccess
 
     public function __destruct()
     {
-        if (is_resource($this->mmap)) {
+        if (\is_resource($this->mmap)) {
             fclose($this->mmap);
         }
     }
@@ -77,11 +81,16 @@ abstract class AbstractRegister implements RegisterInterface, \ArrayAccess
 
     /** ArrayAccess Methods */
 
-    public function offsetExists($offset)
+    public function offsetExists($offset): bool
     {
         return $offset < self::MMAP_BLOCK_SIZE;
     }
 
+    /**
+     * offsetGet
+     * @param mixed $offset
+     * @return mixed
+     */
     public function offsetGet($offset)
     {
         fseek($this->mmap, $offset);
@@ -89,14 +98,19 @@ abstract class AbstractRegister implements RegisterInterface, \ArrayAccess
         return $unpacked['value'];
     }
 
-    public function offsetSet($offset, $value)
+    /**
+     * offsetSet
+     * @param mixed $offset
+     * @param mixed $value
+     */
+    public function offsetSet($offset, $value): void
     {
         //printf("Setting 0x%x to %032b\n", $offset, $value); //Useful to know sometimes
         fseek($this->mmap, $offset);
         fwrite($this->mmap, pack('V', $value));
     }
 
-    public function offsetUnset($offset)
+    public function offsetUnset($offset): void
     {
 
     }

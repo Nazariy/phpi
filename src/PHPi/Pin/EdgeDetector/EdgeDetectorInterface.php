@@ -10,14 +10,12 @@ use Calcinai\PHPi\Pin;
 
 interface EdgeDetectorInterface
 {
+    public const EDGE_NONE = 'none';
+    public const EDGE_RISING = 'rising';
+    public const EDGE_FALLING = 'falling';
+    public const EDGE_BOTH = 'both';
 
-    const EDGE_NONE    = 'none';
-    const EDGE_RISING  = 'rising';
-    const EDGE_FALLING = 'falling';
-    const EDGE_BOTH    = 'both';
+    public function addPin(Pin $pin): void;
 
-
-    public function addPin(Pin $pin);
-
-    public function removePin(Pin $pin);
+    public function removePin(Pin $pin): void;
 }

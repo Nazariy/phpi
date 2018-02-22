@@ -7,7 +7,6 @@
 
 namespace Calcinai\PHPi;
 
-use Calcinai\PHPi\Board;
 use Calcinai\PHPi\Exception\UnsupportedBoardException;
 use React\EventLoop\Factory as LoopFactory;
 use React\EventLoop\LoopInterface;
@@ -22,7 +21,7 @@ class Factory
      * @return \Calcinai\PHPi\Board
      * @throws UnsupportedBoardException
      */
-    public static function create(LoopInterface $loop = null)
+    public static function create(LoopInterface $loop = null): Board
     {
 
         if ($loop === null) {

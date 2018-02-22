@@ -12,13 +12,8 @@ use Calcinai\PHPi\Board\Feature;
 
 class A extends Board
 {
-
+    public const NAME = '1 Model A';
     use Feature\SoC\BCM2835;
     use Feature\HDMI;
     use Feature\Header\P1;
-
-    public static function getBoardName()
-    {
-        return '1 Model A';
-    }
 }

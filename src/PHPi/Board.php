@@ -13,13 +13,12 @@ use Calcinai\PHPi\Peripheral\I2C;
 use Calcinai\PHPi\Peripheral\PWM;
 use Calcinai\PHPi\Peripheral\Register;
 use Calcinai\PHPi\Peripheral\SPI;
-use Calcinai\PHPi\Pin;
 use Calcinai\PHPi\Pin\EdgeDetector;
 use React\EventLoop\LoopInterface;
 
 abstract class Board implements BoardInterface
 {
-
+    public const NAME = null;
     /**
      * @var \React\EventLoop\LibEvLoop|LoopInterface
      */
@@ -102,7 +101,7 @@ abstract class Board implements BoardInterface
      * @param $pin_number
      * @return Pin
      */
-    public function getPin($pin_number)
+    public function getPin($pin_number): Pin
     {
 
         if (!isset($this->pins[$pin_number])) {
@@ -115,8 +114,11 @@ abstract class Board implements BoardInterface
     /**
      * @param $pwm_number
      * @return PWM
+     * @throws \ReflectionException
+     * @throws \OutOfRangeException
+     * @throws \Calcinai\PHPi\Exception\InternalFailureException
      */
-    public function getPWM($pwm_number)
+    public function getPWM($pwm_number): PWM
     {
         if (!isset($this->pwms[$pwm_number])) {
             $this->pwms[$pwm_number] = new PWM($this, $pwm_number);
@@ -128,8 +130,10 @@ abstract class Board implements BoardInterface
     /**
      * @param $clock_number
      * @return Clock
+     * @throws \ReflectionException
+     * @throws \Calcinai\PHPi\Exception\InternalFailureException
      */
-    public function getClock($clock_number)
+    public function getClock($clock_number): Clock
     {
         if (!isset($this->clocks[$clock_number])) {
             $this->clocks[$clock_number] = new Clock($this, $clock_number);
@@ -141,8 +145,10 @@ abstract class Board implements BoardInterface
     /**
      * @param $spi_number
      * @return SPI
+     * @throws \ReflectionException
+     * @throws \Calcinai\PHPi\Exception\InternalFailureException
      */
-    public function getSPI($spi_number)
+    public function getSPI($spi_number): SPI
     {
         if (!isset($this->spis[$spi_number])) {
             $this->spis[$spi_number] = new SPI($this, $spi_number);
@@ -154,8 +160,9 @@ abstract class Board implements BoardInterface
     /**
      * @param $i2c_number
      * @return SPI
+     * @throws \RuntimeException
      */
-    public function getI2C($i2c_number)
+    public function getI2C($i2c_number): SPI
     {
         if (!isset($this->i2cs[$i2c_number])) {
             $this->i2cs[$i2c_number] = new I2C($this, $i2c_number);
@@ -166,10 +173,12 @@ abstract class Board implements BoardInterface
 
     /**
      * @return Register\GPIO
+     * @throws Exception\InternalFailureException
+     * @throws \ReflectionException
      */
-    public function getGPIORegister()
+    public function getGPIORegister(): Peripheral\Register\GPIO
     {
-        if (!isset($this->gpio_register)) {
+        if (null !== $this->gpio_register) {
             $this->gpio_register = new Register\GPIO($this);
         }
 
@@ -178,10 +187,12 @@ abstract class Board implements BoardInterface
 
     /**
      * @return Register\PWM
+     * @throws Exception\InternalFailureException
+     * @throws \ReflectionException
      */
-    public function getPWMRegister()
+    public function getPWMRegister(): Peripheral\Register\PWM
     {
-        if (!isset($this->pwm_register)) {
+        if (null !== $this->pwm_register) {
             $this->pwm_register = new Register\PWM($this);
         }
 
@@ -190,10 +201,12 @@ abstract class Board implements BoardInterface
 
     /**
      * @return Register\Clock
+     * @throws Exception\InternalFailureException
+     * @throws \ReflectionException
      */
-    public function getClockRegister()
+    public function getClockRegister(): Peripheral\Register\Clock
     {
-        if (!isset($this->clock_register)) {
+        if (null !== $this->clock_register) {
             $this->clock_register = new Register\Clock($this);
         }
 
@@ -202,10 +215,12 @@ abstract class Board implements BoardInterface
 
     /**
      * @return Register\Auxiliary
+     * @throws Exception\InternalFailureException
+     * @throws \ReflectionException
      */
-    public function getAuxRegister()
+    public function getAuxRegister(): Peripheral\Register\Auxiliary
     {
-        if (!isset($this->aux_register)) {
+        if (null !== $this->aux_register) {
             $this->aux_register = new Register\Auxiliary($this);
         }
 
@@ -214,29 +229,34 @@ abstract class Board implements BoardInterface
 
     /**
      * @return Register\SPI
+     * @throws Exception\InternalFailureException
+     * @throws \ReflectionException
      */
-    public function getSPIRegister()
+    public function getSPIRegister(): Peripheral\Register\SPI
     {
-        if (!isset($this->spi_register)) {
+        if (null !== $this->spi_register) {
             $this->spi_register = new Register\SPI($this);
         }
 
         return $this->spi_register;
     }
 
-
+    /**
+     * getEdgeDetector
+     * @return EdgeDetector\EdgeDetectorInterface|EdgeDetector\Rubberneck|EdgeDetector\StatusPoll
+     */
     public function getEdgeDetector()
     {
-        if (!isset($this->edge_detector)) {
+        if (null !== $this->edge_detector) {
             $this->edge_detector = EdgeDetector\Factory::create($this);
         }
         return $this->edge_detector;
     }
 
     /**
-     * Should be overloaded by frature trait
+     * Should be overloaded by fracture trait
      */
-    public function getPhysicalPins()
+    public function getPhysicalPins(): array
     {
         return [];
     }
@@ -247,7 +267,7 @@ abstract class Board implements BoardInterface
      *
      * @return \stdClass
      */
-    public static function getMeta()
+    public static function getMeta(): \stdClass
     {
 
         $meta = new \stdClass();
@@ -262,7 +282,7 @@ abstract class Board implements BoardInterface
 
         foreach (explode("\n", $info) as $line) {
             //null,null avoid undefined offset.
-            list($tag, $value) = explode(':', $line, 2) + [null, null];
+            [$tag, $value] = explode(':', $line, 2) + [null, null];
 
             switch (strtolower(trim($tag))) {
                 case 'revision':
@@ -288,5 +308,8 @@ abstract class Board implements BoardInterface
         return $meta;
     }
 
-
+    public static function getBoardName(): string
+    {
+        return static::NAME ?? static::class;
+    }
 }

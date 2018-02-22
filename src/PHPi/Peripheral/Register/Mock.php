@@ -16,19 +16,23 @@ use Calcinai\PHPi\Board\BoardInterface;
  */
 class Mock extends AbstractRegister
 {
-
     private $data;
-
+    /**
+     * @var BoardInterface
+     */
+    private $board;
+    /** @noinspection MagicMethodsValidityInspection */
+    /** @noinspection PhpMissingParentConstructorInspection */
     /**
      * Overload the parent constructor so nothing is actually mapped
      *
      * AbstractRegister constructor.
      * @param BoardInterface $board
      */
-    /** @noinspection PhpMissingParentConstructorInspection */
     public function __construct(BoardInterface $board)
     {
         $this->data = [];
+        $this->board = $board;
     }
 
     /**
@@ -36,27 +40,27 @@ class Mock extends AbstractRegister
      * @return bool
      */
 
-    public function offsetExists($offset)
+    public function offsetExists($offset): bool
     {
         return isset($this->data[$offset]);
     }
 
     public function offsetGet($offset)
     {
-        return isset($this->data[$offset]) ? $this->data[$offset] : 0;
+        return $this->data[$offset] ?? 0;
     }
 
-    public function offsetSet($offset, $value)
+    public function offsetSet($offset, $value):void
     {
         $this->data[$offset] = $value;
     }
 
-    public function offsetUnset($offset)
+    public function offsetUnset($offset):void
     {
 
     }
 
-    public static function getOffset()
+    public static function getOffset():int
     {
         return 0;
     }

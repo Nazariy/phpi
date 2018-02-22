@@ -6,11 +6,16 @@
 
 namespace Calcinai\PHPi\Board\Feature\SoC;
 
-use Calcinai\PHPi\Pin\PinFunction as PF;
+use Calcinai\PHPi\Pin\PinInterface as PF;
 
 trait BCM2835
 {
-    public static function getPinFunctionMatrix()
+    /**
+     * getPinFunctionMatrix
+     * @static
+     * @return array
+     */
+    public static function getPinFunctionMatrix(): array
     {
         return [
             0 => [PF::SDA0 => PF::ALT0],
@@ -70,7 +75,12 @@ trait BCM2835
         ];
     }
 
-    public static function getPeripheralBaseAddress()
+    /**
+     * getPeripheralBaseAddress
+     * @static
+     * @return int
+     */
+    public static function getPeripheralBaseAddress(): int
     {
         return 0x20000000;
     }

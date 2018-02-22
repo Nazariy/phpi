@@ -11,18 +11,18 @@
 include __DIR__.'/../vendor/autoload.php';
 
 use Calcinai\PHPi\Pin;
-use Calcinai\PHPi\Pin\PinFunction;
+use Calcinai\PHPi\Pin\PinInterface;
 
 $board = \Calcinai\PHPi\Factory::create();
 
 //Switch
 $input = $board->getPin(17)
-    ->setFunction(PinFunction::INPUT)
+    ->setFunction(PinInterface::INPUT)
     ->setPull(Pin::PULL_UP);
 
 //LED
 $output = $board->getPin(18)
-    ->setFunction(PinFunction::OUTPUT);
+    ->setFunction(PinInterface::OUTPUT);
 
 
 $input->on('level.high', [$output, 'high']);

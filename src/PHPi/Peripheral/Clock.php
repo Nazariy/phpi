@@ -6,9 +6,7 @@
 
 namespace Calcinai\PHPi\Peripheral;
 
-
 use Calcinai\PHPi\Board;
-use Calcinai\PHPi\Exception\InvalidValueException;
 
 class Clock extends AbstractPeripheral
 {
@@ -18,15 +16,19 @@ class Clock extends AbstractPeripheral
     private $div;
     private $ctl;
 
-    const MIN_FREQUENCY = 0.0001;
 
-    const GP0 = 0;
-    const GP1 = 1;
-    const GP2 = 2;
-    const PCM = 3;
-    const PWM = 4;
+    public const MIN_FREQUENCY = 0.0001;
 
-    static $CTL = [
+    public const GP0 = 0;
+    public const GP1 = 1;
+    public const GP2 = 2;
+    public const PCM = 3;
+    public const PWM = 4;
+
+    /**
+     * @var array
+     */
+    public static $CTL = [
         self::GP0 => Register\Clock::GP0_CTL,
         self::GP1 => Register\Clock::GP1_CTL,
         self::GP2 => Register\Clock::GP2_CTL,
@@ -34,8 +36,10 @@ class Clock extends AbstractPeripheral
         self::PWM => Register\Clock::PWM_CTL
     ];
 
-
-    static $DIV = [
+    /**
+     * @var array
+     */
+    public static $DIV = [
         self::GP0 => Register\Clock::GP0_DIV,
         self::GP1 => Register\Clock::GP1_DIV,
         self::GP2 => Register\Clock::GP2_DIV,
@@ -43,7 +47,11 @@ class Clock extends AbstractPeripheral
         self::PWM => Register\Clock::PWM_DIV
     ];
 
-    static $CLOCK_FREQUENCIES = [
+    /**
+     * Set of frequency presented as float numbers
+     * @var array
+     */
+    public static $CLOCK_FREQUENCIES = [
         Register\Clock::SRC_OSC => 192e5, //19.2MHz
         Register\Clock::SRC_PLLA => 0,
         Register\Clock::SRC_PLLC => 100e7, //1GHz
@@ -51,9 +59,16 @@ class Clock extends AbstractPeripheral
         Register\Clock::SRC_HDMI => 216e6, //216MHz
     ];
 
-    public function __construct(Board $board, $clock_number)
+    /**
+     * Clock constructor.
+     * @param Board $board
+     * @param int $clock_number
+     * @throws \Calcinai\PHPi\Exception\InternalFailureException
+     * @throws \ReflectionException
+     */
+    public function __construct(Board $board, int $clock_number)
     {
-        $this->board = $board;
+        $this->setBoard($board);
         $this->clock_register = $this->board->getClockRegister();
 
         $this->div = static::$DIV[$clock_number];
@@ -61,22 +76,30 @@ class Clock extends AbstractPeripheral
     }
 
     /**
-     * @param $frequency
+     * start
+     * @param float $frequency
      * @param int $src
-     * @return $this
-     * @throws InvalidValueException
+     * @return Clock
+     * @throws \RangeException
+     * @throws \OutOfRangeException
      */
-    public function start($frequency, $src = Register\Clock::SRC_OSC)
+    public function start(float $frequency, $src = Register\Clock::SRC_OSC): self
     {
 
         if (!isset(static::$CLOCK_FREQUENCIES[$src])) {
-            throw new InvalidValueException(sprintf('Invalid clock source'));
+            throw new \RangeException(sprintf('Invalid clock source'));
         }
 
         $base_frequency = static::$CLOCK_FREQUENCIES[$src];
 
         if ($frequency < self::MIN_FREQUENCY || $frequency > $base_frequency) {
-            throw new InvalidValueException(sprintf('Frequency must be between %s and %s', self::MIN_FREQUENCY, $base_frequency));
+            throw new \OutOfRangeException(
+                sprintf(
+                    'Frequency must be between %f and %f',
+                    self::MIN_FREQUENCY,
+                    $base_frequency
+                )
+            );
         }
 
 
@@ -98,20 +121,28 @@ class Clock extends AbstractPeripheral
     }
 
     /**
-     * @return $this
+     * stop
+     * @return Clock
      */
-    public function stop()
+    public function stop(): self
     {
-
         $this->clock_register[$this->ctl] = Register\AbstractRegister::BCM_PASSWORD | Register\Clock::KILL;
         usleep(110);
 
         //Wait for not busy
-        while (($this->clock_register[$this->ctl] & Register\Clock::BUSY) != 0) {
+        while (($this->clock_register[$this->ctl] & Register\Clock::BUSY) !== 0) {
             usleep(10);
         }
-
         return $this;
     }
 
+    /**
+     * setFrequency
+     * @param float $frequency
+     * @return $this|AbstractPeripheral
+     */
+    public function setFrequency(float $frequency):self
+    {
+        return $this;
+    }
 }

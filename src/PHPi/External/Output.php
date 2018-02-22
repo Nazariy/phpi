@@ -22,32 +22,57 @@ class Output
      */
     protected $active_high;
 
+    /**
+     * Output constructor.
+     * @param Pin $pin
+     * @param bool $active_high
+     * @throws \Calcinai\PHPi\Exception\InvalidPinFunctionException
+     */
     public function __construct(Pin $pin, $active_high = true)
     {
         $this->pin = $pin;
         $this->active_high = $active_high;
 
-        $pin->setFunction(Pin\PinFunction::OUTPUT);
+        $pin->setFunction(Pin\PinInterface::OUTPUT);
     }
 
 
-    public function on()
+    /**
+     * on
+     * @throws \Calcinai\PHPi\Exception\InvalidPinFunctionException
+     */
+    public function on(): void
     {
         $this->active_high ? $this->pin->high() : $this->pin->low();
     }
 
-    public function off()
+    /**
+     * off
+     * @throws \Calcinai\PHPi\Exception\InvalidPinFunctionException
+     */
+    public function off(): void
     {
         $this->active_high ? $this->pin->low() : $this->pin->high();
     }
 
-    public function toggle()
+    /**
+     * toggle
+     * @throws \Calcinai\PHPi\Exception\InvalidPinFunctionException
+     */
+    public function toggle(): void
     {
         //This will still work if active low
         $this->pin->getLevel() === Pin::LEVEL_HIGH ? $this->pin->low() : $this->pin->high();
     }
 
-    public function pulse($iterations = null, $interval = 1, $duty = 0.5)
+    /**
+     * pulse
+     * @param null $iterations
+     * @param int $interval
+     * @param float $duty
+     * @throws \Calcinai\PHPi\Exception\InvalidPinFunctionException
+     */
+    public function pulse($iterations = null, $interval = 1, $duty = 0.5): void
     {
 
         $this->on();

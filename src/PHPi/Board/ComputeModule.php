@@ -12,11 +12,7 @@ use Calcinai\PHPi\Board\Feature;
 
 class ComputeModule extends Board
 {
+    public const NAME = 'Compute Module';
 
     use Feature\SoC\BCM2835;
-
-    public static function getBoardName()
-    {
-        return 'Compute Module';
-    }
 }

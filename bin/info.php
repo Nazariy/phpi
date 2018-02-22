@@ -5,21 +5,20 @@
 
 include __DIR__ . '/../vendor/autoload.php';
 
-use Calcinai\PHPi\Pin\PinFunction;
+use Calcinai\PHPi\Pin\PinInterface;
 
 $loop = \React\EventLoop\Factory::create();
 $board = \Calcinai\PHPi\Factory::create($loop);
 
-$loop->addPeriodicTimer(0.5, function() use($board){
+$loop->addPeriodicTimer(0.5, function () use ($board) {
 
     //Move cursor back up if it's moved
     static $num_lines = 0;
-    if($num_lines) {
+    if ($num_lines) {
         printf("\e[%sA", $num_lines);
     }
 
     ob_start();
-
 
     $meta = $board->getMeta();
     printf(bold("Raspberry Pi %-15s %44s\n"), $meta->board_name, date('r'));
@@ -28,7 +27,7 @@ $loop->addPeriodicTimer(0.5, function() use($board){
 
 
     //Dump the headers
-    foreach($board->getPhysicalPins() as $header_name => $physical_pins){
+    foreach ($board->getPhysicalPins() as $header_name => $physical_pins) {
         renderHeader($board, $header_name, $physical_pins);
         echo "\n";
     }
@@ -49,7 +48,8 @@ $loop->run();
  * @param string $header_name
  * @param Calcinai\PHPi\Board\Feature\Header\PhysicalPin[] $physical_pins
  */
-function renderHeader($board, $header_name, $physical_pins){
+function renderHeader($board, $header_name, $physical_pins)
+{
 
     $table_format = "| %10s | %5s | %3s | %3s | %s %s | %-3s | %-3s | %-5s | %-10s |\n";
 
@@ -94,12 +94,13 @@ function renderHeader($board, $header_name, $physical_pins){
  * @param $gpio_number
  * @return stdClass
  */
-function getPinAttributes($board, $gpio_number){
+function getPinAttributes($board, $gpio_number)
+{
 
     $attributes = new stdClass();
 
     //So it can be rendered anyway
-    if($gpio_number === null){
+    if ($gpio_number === null) {
         $attributes->function = null;
         $attributes->level = null;
     } else {
@@ -112,18 +113,22 @@ function getPinAttributes($board, $gpio_number){
 }
 
 
-function red($text){
+function red($text)
+{
     return esc_print('31', $text);
 }
 
-function grey($text){
+function grey($text)
+{
     return esc_print('37', $text);
 }
 
-function bold($text){
+function bold($text)
+{
     return esc_print('1', $text);
 }
 
-function esc_print($esc_code, $text){
+function esc_print($esc_code, $text)
+{
     return sprintf("\e[%sm%s\e[0m", $esc_code, $text);
 }

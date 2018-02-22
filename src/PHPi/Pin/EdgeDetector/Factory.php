@@ -11,13 +11,20 @@ use Calcinai\PHPi\Board;
 class Factory
 {
 
+    /**
+     * create
+     * @static
+     * @param Board $board
+     * @return Rubberneck|StatusPoll
+     * @throws \Calcinai\PHPi\Exception\InternalFailureException
+     */
     public static function create(Board $board)
     {
         //It isn't working correctly yet.
-        if (false && Rubberneck::isSuitable()) {
-            return new Rubberneck($board);
-        } else {
-            return new StatusPoll($board);
-        }
+//        if (false && Rubberneck::isSuitable()) {
+//            return new Rubberneck($board);
+//        }
+        return new StatusPoll($board);
+
     }
 }

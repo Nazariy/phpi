@@ -12,14 +12,14 @@
 
 include __DIR__.'/../vendor/autoload.php';
 
-use Calcinai\PHPi\Pin\PinFunction;
+use Calcinai\PHPi\Pin\PinInterface;
 
 
 $loop = \React\EventLoop\Factory::create();
 $board = \Calcinai\PHPi\Factory::create($loop);
 
-$board->getPin(18)->setFunction(PinFunction::PWM0);
-$board->getPin(19)->setFunction(PinFunction::PWM1);
+$board->getPin(18)->setFunction(PinInterface::PWM0);
+$board->getPin(19)->setFunction(PinInterface::PWM1);
 
 $pwm0 = $board->getPWM(\Calcinai\PHPi\Peripheral\PWM::PWM0)
     ->start();

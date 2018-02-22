@@ -14,7 +14,7 @@ include __DIR__.'/../vendor/autoload.php';
 use Calcinai\PHPi\Peripheral\PWM;
 use Calcinai\PHPi\Peripheral\SPI;
 
-use Calcinai\PHPi\Pin\PinFunction;
+use Calcinai\PHPi\Pin\PinInterface;
 
 use Calcinai\PHPi\External\ADC\Microchip\MCP3004;
 
@@ -23,12 +23,12 @@ $loop = \React\EventLoop\Factory::create();
 $board = \Calcinai\PHPi\Factory::create($loop);
 
 //Flip the appropriate pins to their alt functions.  Will make a helper for this.
-$board->getPin(10)->setFunction(PinFunction::SPI0_MOSI);
-$board->getPin(9)->setFunction(PinFunction::SPI0_MISO);
-$board->getPin(11)->setFunction(PinFunction::SPI0_SCLK);
-$board->getPin(8)->setFunction(PinFunction::SPI0_CE0_N);
+$board->getPin(10)->setFunction(PinInterface::SPI0_MOSI);
+$board->getPin(9)->setFunction(PinInterface::SPI0_MISO);
+$board->getPin(11)->setFunction(PinInterface::SPI0_SCLK);
+$board->getPin(8)->setFunction(PinInterface::SPI0_CE0_N);
 
-$board->getPin(18)->setFunction(PinFunction::PWM0);
+$board->getPin(18)->setFunction(PinInterface::PWM0);
 
 $pwm = $board->getPWM(PWM::PWM0)->start();
 

@@ -15,7 +15,13 @@ use Calcinai\Rubberneck\Observer;
 class Rubberneck implements EdgeDetectorInterface
 {
 
+    /**
+     * @var Board
+     */
     private $board;
+    /**
+     * @var Observer
+     */
     private $observer;
 
     /**
@@ -23,9 +29,12 @@ class Rubberneck implements EdgeDetectorInterface
      */
     private $pins;
 
+    /**
+     * Rubberneck constructor.
+     * @param Board $board
+     */
     public function __construct(Board $board)
     {
-
         $this->board = $board;
         $this->pins = [];
 
@@ -37,7 +46,7 @@ class Rubberneck implements EdgeDetectorInterface
     }
 
 
-    public function addPin(Pin $pin)
+    public function addPin(Pin $pin): void
     {
         SysFS::exportPin($pin);
         SysFS::setEdge($pin, self::EDGE_BOTH);
@@ -46,7 +55,7 @@ class Rubberneck implements EdgeDetectorInterface
 
     }
 
-    public function removePin(Pin $pin)
+    public function removePin(Pin $pin): void
     {
         SysFS::unexportPin($pin);
 
@@ -54,14 +63,15 @@ class Rubberneck implements EdgeDetectorInterface
     }
 
 
-    public function eventDetect($file)
+    public function eventDetect($file): void
     {
-        list($pin_number) = sscanf($file, SysFS::PATH_BASE . '/gpio%i/');
+        [$pin_number] = sscanf($file, SysFS::PATH_BASE . '/gpio%i/');
 
         $pin = $this->pins[$pin_number];
 
         //This is the same logic as in the status poll
         //Toggle the pin level since something has changed (even though if we read it now we may have missed it).
+        /** @var Pin $pin */
         $pin->setInternalLevel($pin->getInternalLevel() === Pin::LEVEL_HIGH ? Pin::LEVEL_LOW : Pin::LEVEL_HIGH);
         //Read the level and set it to whatever it is now, it will usually be the toggled state, but if the rise/fall event
         //was too fast for us to observe, it'll bring the pin back to normal.
@@ -75,7 +85,7 @@ class Rubberneck implements EdgeDetectorInterface
      *
      * @return bool
      */
-    public static function isSuitable()
+    public static function isSuitable(): bool
     {
         return InotifyWait::hasDependencies();
     }

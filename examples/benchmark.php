@@ -6,12 +6,12 @@
 
 include __DIR__.'/../vendor/autoload.php';
 
-use Calcinai\PHPi\Pin\PinFunction;
+use Calcinai\PHPi\Pin\PinInterface;
 
 $board = \Calcinai\PHPi\Factory::create();
 
 $pin = $board->getPin(18);
-$pin->setFunction(PinFunction::OUTPUT);
+$pin->setFunction(PinInterface::OUTPUT);
 
 $start = microtime(true);
 

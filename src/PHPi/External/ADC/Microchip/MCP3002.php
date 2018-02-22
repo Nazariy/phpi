@@ -4,6 +4,7 @@
  * @package    calcinai/phpi
  * @author     Michael Calcinai <michael@calcin.ai>
  */
+
 namespace Calcinai\PHPi\External\ADC\Microchip;
 
 /**
@@ -14,10 +15,5 @@ namespace Calcinai\PHPi\External\ADC\Microchip;
  */
 class MCP3002 extends MCP300x
 {
-
-
-    public function getNumChannels()
-    {
-        return 2;
-    }
+    public const TOTAL_CHANNELS = 2;
 }

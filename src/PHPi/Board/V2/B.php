@@ -12,14 +12,9 @@ use Calcinai\PHPi\Board\Feature;
 
 class B extends Board
 {
-
+    public const NAME = '2 Model B';
     use Feature\SoC\BCM2836;
     use Feature\HDMI;
     use Feature\Ethernet;
     use Feature\Header\J8;
-
-    public static function getBoardName()
-    {
-        return '2 Model B';
-    }
 }

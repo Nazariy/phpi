@@ -11,7 +11,12 @@ trait BCM2837
     //From what I understand there's not a lot of difference between the SoC except the CPU
     use BCM2835;
 
-    public static function getPeripheralBaseAddress()
+    /**
+     * getPeripheralBaseAddress
+     * @static
+     * @return int
+     */
+    public static function getPeripheralBaseAddress(): int
     {
         return 0x3f000000;
     }

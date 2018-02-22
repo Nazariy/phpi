@@ -11,9 +11,25 @@ use Calcinai\PHPi\Board;
 class I2C extends AbstractPeripheral
 {
 
-    public function __construct(Board $board)
+    /**
+     * I2C constructor.
+     * @param Board $board
+     * @param $spi_number
+     * @throws \RuntimeException
+     */
+    public function __construct(Board $board, $spi_number)
     {
-        throw new \Exception('I2C not implemented');
+        $this->setBoard($board);
+        throw new \RuntimeException('I2C not implemented');
     }
 
+    /**
+     * setFrequency
+     * @param float $frequency
+     * @return mixed
+     */
+    public function setFrequency(float $frequency)
+    {
+        return $this;
+    }
 }

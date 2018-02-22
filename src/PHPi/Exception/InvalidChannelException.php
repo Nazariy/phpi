@@ -6,7 +6,7 @@
 
 namespace Calcinai\PHPi\Exception;
 
-class InvalidChannelException extends \Exception
+class InvalidChannelException extends \DomainException
 {
 
 }

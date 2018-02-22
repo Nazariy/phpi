@@ -1,31 +1,43 @@
 {
-  "name": "calcinai/phpi",
-  "description": "Event driven bindings for the Raspberry Pi GPIO",
-  "type": "Library",
-  "keywords": ["raspberry", "pi", "rpi", "gpio", "websocket", "spi", "pwm"],
-  "license": "MIT",
-  "authors": [
-    {
-      "name": "Michael Calcinai",
-      "email": "michael@calcin.ai"
-    }
-  ],
-  "require": {
-    "php": ">=5.4.0",
-    "calcinai/php-mmap": "^0.1",
-    "react/event-loop": "^0.4.1"
-  },
-  "require-dev": {
-    "phpunit/phpunit": "^4.8"
-  },
-  "suggest": {
-    "ext-mmap": "Much more efficient native extension for accessing peripheral registers",
-    "cboden/ratchet": "For realtime, bidirectional control from a web browser"
-  },
-  "autoload": {
-    "psr-4": {
-      "Calcinai\\PHPi\\": "src/PHPi"
-    }
-  },
-  "bin": ["bin/phpi"]
+    "name": "calcinai/phpi",
+    "description": "Event driven bindings for the Raspberry Pi GPIO",
+    "type": "Library",
+    "keywords": [
+        "raspberry",
+        "pi",
+        "rpi",
+        "gpio",
+        "websocket",
+        "spi",
+        "pwm"
+    ],
+    "license": "MIT",
+    "authors": [
+        {
+            "name": "Michael Calcinai",
+            "email": "michael@calcin.ai"
+        }
+    ],
+    "require": {
+        "roave/security-advisories": "dev-master",
+        "php": ">=5.6.0",
+        "calcinai/php-mmap": "^0.1",
+        "calcinai/rubberneck": "^0.1.1",
+        "react/event-loop": "^0.4.1"
+    },
+    "require-dev": {
+        "phpunit/phpunit": "^4.8"
+    },
+    "suggest": {
+        "ext-mmap": "Much more efficient native extension for accessing peripheral registers",
+        "cboden/ratchet": "For realtime, bidirectional control from a web browser"
+    },
+    "autoload": {
+        "psr-4": {
+            "Calcinai\\PHPi\\": "src/PHPi"
+        }
+    },
+    "bin": [
+        "bin/phpi"
+    ]
 }

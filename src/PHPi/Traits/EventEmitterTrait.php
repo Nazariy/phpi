@@ -8,14 +8,23 @@
  * overloading the trait.
  *
  */
+
 namespace Calcinai\PHPi\Traits;
 
 trait EventEmitterTrait
 {
 
+    /**
+     * @var array
+     */
     protected $listeners;
 
-    public function on($event, callable $listener)
+    /**
+     * on
+     * @param string $event
+     * @param callable $listener
+     */
+    public function on(string $event, callable $listener): void
     {
         if (!isset($this->listeners[$event])) {
             $this->listeners[$event] = [];
@@ -25,65 +34,83 @@ trait EventEmitterTrait
         $this->eventListenerAdded($event);
     }
 
-    public function once($event, callable $listener)
+    /**
+     * once
+     * @param string $event
+     * @param callable $listener
+     */
+    public function once(string $event, callable $listener): void
     {
-
         $onceListener = function () use (&$onceListener, $event, $listener) {
             $this->removeListener($event, $onceListener);
 
-            call_user_func_array($listener, func_get_args());
+            \call_user_func_array($listener, \func_get_args());
         };
 
         $this->on($event, $onceListener);
     }
 
-    public function removeListener($event, callable $listener)
+    public function removeListener(string $event, callable $listener): void
     {
-        if (isset($this->listeners[$event])) {
-            if (false !== $index = array_search($listener, $this->listeners[$event], true)) {
-                unset($this->listeners[$event][$index]);
-                $this->eventListenerRemoved($event);
-            }
+        if (
+            isset($this->listeners[$event]) &&
+            false !== ($index = array_search($listener, $this->listeners[$event], true))
+        ) {
+            unset($this->listeners[$event][$index]);
+            $this->eventListenerRemoved($event);
         }
-
     }
 
-    public function removeAllListeners($event = null)
+    public function removeAllListeners(string $event = null): void
     {
         if ($event !== null) {
             foreach ($this->listeners($event) as $listener) {
                 $this->removeListener($event, $listener);
             }
         } else {
-            foreach (array_keys($this->listeners) as $event) {
-                $this->removeAllListeners($event);
+            foreach (array_keys($this->listeners) as $e) {
+                $this->removeAllListeners($e);
             }
         }
     }
 
-    public function listeners($event)
+    /**
+     * listeners
+     * @param string $event
+     * @return array
+     */
+    public function listeners(string $event): array
     {
-        return isset($this->listeners[$event]) ? $this->listeners[$event] : [];
+        return $this->listeners[$event] ?? [];
     }
 
-    public function countListeners($event = null)
+    /**
+     * countListeners
+     * @param string $event
+     * @return int|null
+     */
+    public function countListeners(string $event = null): ?int
     {
         if ($event !== null) {
-            return count($this->listeners[$event]);
-        } else {
-            $num_listeners = 0;
-            foreach (array_keys($this->listeners) as $event) {
-                $num_listeners += count($this->listeners[$event]);
-            }
-            return $num_listeners;
+            return \count($this->listeners[$event]);
         }
+        $num_listeners = 0;
+        foreach (array_keys($this->listeners) as $e) {
+            $num_listeners += \count($this->listeners[$e]);
+        }
+        return $num_listeners;
+
     }
 
-    public function emit($event, array $arguments = [])
+    /**
+     * emit
+     * @param $event
+     * @param array $arguments
+     */
+    public function emit(string $event, array $arguments = []): void
     {
-
         foreach ($this->listeners($event) as $listener) {
-            call_user_func_array($listener, $arguments);
+            \call_user_func_array($listener, $arguments);
         }
     }
 
@@ -93,16 +120,14 @@ trait EventEmitterTrait
      *
      * @param $event_name
      */
-    public function eventListenerAdded($event_name)
+    public function eventListenerAdded($event_name): void
     {
     }
 
     /**
      * @param $event_name
      */
-    public function eventListenerRemoved($event_name)
+    public function eventListenerRemoved($event_name): void
     {
     }
-
-
 }

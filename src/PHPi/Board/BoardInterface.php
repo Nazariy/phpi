@@ -15,7 +15,7 @@ interface BoardInterface
 
     public static function getPinFunctionMatrix();
 
-    public static function getBoardName();
+    public static function getBoardName(): string;
 
     /**
      * @return LoopInterface

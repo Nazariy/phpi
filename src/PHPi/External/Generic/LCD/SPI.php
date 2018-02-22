@@ -6,7 +6,10 @@
 
 namespace Calcinai\PHPi\External\Generic\LCD;
 
-
+/**
+ * Class SPI
+ * @package Calcinai\PHPi\External\Generic\LCD
+ */
 class SPI
 {
 

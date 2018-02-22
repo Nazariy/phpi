@@ -13,8 +13,8 @@ use Calcinai\PHPi\Peripheral\SPI;
 
 abstract class MCP300x
 {
-
-    const DEFAULT_CLOCK_SPEED = 1e6; //1MHz
+    public const TOTAL_CHANNELS = 0;
+    public const DEFAULT_CLOCK_SPEED = 1e6; //1MHz
 
     private $spi;
     private $spi_channel;
@@ -34,7 +34,7 @@ abstract class MCP300x
     {
 
         $this->spi = $spi;
-        $this->spi->setClockSpeed(self::DEFAULT_CLOCK_SPEED);
+        $this->spi->setFrequency(self::DEFAULT_CLOCK_SPEED);
 
         $this->spi_channel = $spi_channel;
 
@@ -75,6 +75,12 @@ abstract class MCP300x
         return $this->spi->transfer($buffer, $this->spi_channel);
     }
 
-
-    abstract public function getNumChannels();
+    /**
+     * getNumChannels
+     * @return int
+     */
+    public function getNumChannels(): int
+    {
+        return static::TOTAL_CHANNELS;
+    }
 }

@@ -6,7 +6,7 @@
 
 namespace Calcinai\PHPi\Exception;
 
-class InvalidValueException extends \Exception
+class InvalidValueException extends \UnexpectedValueException
 {
 
 }

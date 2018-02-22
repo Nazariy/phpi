@@ -12,7 +12,7 @@ use Calcinai\PHPi\Board\Feature;
 
 class BRev2 extends Board
 {
-
+    public const NAME = '1 Model B rev2';
     use Feature\SoC\BCM2835;
     use Feature\HDMI;
     use Feature\Ethernet;
@@ -23,15 +23,8 @@ class BRev2 extends Board
     }
 
     //All this carry on aliasing traits so you can have more than one while composing from the same data
-    public function getPhysicalPins()
+    public function getPhysicalPins(): array
     {
         return array_merge($this->getPhysicalPinsP1(), $this->getPhysicalPinsP5());
     }
-
-
-    public static function getBoardName()
-    {
-        return '1 Model B rev2';
-    }
-
 }

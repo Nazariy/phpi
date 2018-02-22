@@ -18,38 +18,60 @@ use Calcinai\PHPi\Board;
  */
 class SPI extends AbstractPeripheral
 {
+    /**
+     *
+     */
+    public const SPI0 = 0;
 
-    const SPI0 = 0;
+    public const CS0 = 0; //Chip Select 0
+    public const CS1 = 1; //Chip Select 1
+    public const CS2 = 2; //Chip Select 2 (ie pins CS1 and CS2 are asserted)
+    public const CS_NONE = 3; // CS, control it yourself
 
-    const CS0     = 0; //Chip Select 0
-    const CS1     = 1; //Chip Select 1
-    const CS2     = 2; //Chip Select 2 (ie pins CS1 and CS2 are asserted)
-    const CS_NONE = 3; // CS, control it yourself
-
-
-    const SYSTEM_CLOCK_SPEED = 250e6; //250MHz - Haven't had time to check this yet.
-
-    private $spi_number;
+    /**
+     * 250MHz - Haven't had time to check this yet.
+     */
+    public const SYSTEM_CLOCK_SPEED = 250e6;
 
     /**
      * @var Register\SPI
      */
     private $spi_register;
+    /**
+     * @var
+     */
+    private $spi_number;
 
-
+    /**
+     * SPI constructor.
+     * @param Board $board
+     * @param $spi_number
+     * @throws \ReflectionException
+     * @throws \Calcinai\PHPi\Exception\InternalFailureException
+     */
     public function __construct(Board $board, $spi_number)
     {
-
         $this->board = $board;
         $this->spi_number = $spi_number;
         $this->spi_register = $board->getSPIRegister();
     }
 
     /**
-     * @param $frequency
+     * @param float $frequency
+     * @deprecated
      * @return $this
      */
-    public function setClockSpeed($frequency)
+    public function setClockSpeed(float $frequency): self
+    {
+        return $this->setFrequency($frequency);
+    }
+
+    /**
+     * setFrequency
+     * @param float $frequency
+     * @return SPI
+     */
+    public function setFrequency(float $frequency): self
     {
         $divisor = self::SYSTEM_CLOCK_SPEED / $frequency;
 
@@ -66,7 +88,7 @@ class SPI extends AbstractPeripheral
      * @param $cex
      * @return $this
      */
-    public function chipSelect($cex)
+    public function chipSelect($cex): self
     {
         $this->spi_register[Register\SPI::CS] = Register\SPI::CS_CS & $cex;
 
@@ -102,7 +124,7 @@ class SPI extends AbstractPeripheral
             $rx_buffer .= $this->transferByte($char);
         }
 
-        //This one might not be nesessary
+        //This one might not be necessary
         while (!($this->spi_register[Register\SPI::CS] & Register\SPI::CS_DONE)) {
             usleep(1);
         }
@@ -113,35 +135,53 @@ class SPI extends AbstractPeripheral
     }
 
 
-    private function transferByte($byte)
+    /**
+     * transferByte
+     * @param $byte
+     * @return string
+     */
+    private function transferByte($byte): string
     {
-
         // Wait for cts
         while (!($this->spi_register[Register\SPI::CS] & Register\SPI::CS_TXD)) {
             usleep(1);
         }
-        $this->spi_register[Register\SPI::FIFO] = ord($byte); //Just in case (PHP)
+        $this->spi_register[Register\SPI::FIFO] = \ord($byte); //Just in case (PHP)
 
         //Wait for FIFO to be populated
         while (!($this->spi_register[Register\SPI::CS] & Register\SPI::CS_RXD)) {
             usleep(1);
         }
 
-        return chr($this->spi_register[Register\SPI::FIFO]);
-
+        return \chr($this->spi_register[Register\SPI::FIFO]);
     }
 
-
-    private function startTransfer()
+    /**
+     * startTransfer
+     */
+    private function startTransfer(): void
     {
         //Clear TX and RX FIFO, set TA
         $this->spi_register[Register\SPI::CS] |= Register\SPI::CS_CLEAR | Register\SPI::CS_TA;
     }
 
-    private function endTransfer()
+    /**
+     * endTransfer
+     */
+    private function endTransfer(): void
     {
         //Clear TA
         $this->spi_register[Register\SPI::CS] &= ~Register\SPI::CS_TA;
+    }
+
+    /**
+     * Get SpiNumber
+     * @access public
+     * @return mixed
+     */
+    public function getSpiNumber()
+    {
+        return $this->spi_number;
     }
 
 }

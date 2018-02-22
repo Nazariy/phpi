@@ -48,13 +48,13 @@ Minimal example of reading and setting a pin
 ```php
 
 $pin = $board->getPin(17) //BCM pin number
-             ->setFunction(PinFunction::INPUT)
+             ->setFunction(PinInterface::INPUT)
              ->setPull(Pin::PULL_UP);
 
 //Will be === to Pin::LEVEL_HIGH or Pin::LEVEL_LOW
 var_dump($pin->level());
 
-$pin->setFunction(PinFunction::OUTPUT)
+$pin->setFunction(PinInterface::OUTPUT)
 $pin->high();
 $pin->low();
 ```
@@ -73,7 +73,7 @@ $board->getLoop()->run();
 
 ### GPIO
 
-GPIO (input) is the default mode of the pin objects. Alternate functions can be accessed by using the ```->setFunction(PinFunction::x)``` method.  It is
+GPIO (input) is the default mode of the pin objects. Alternate functions can be accessed by using the ```->setFunction(PinInterface::x)``` method.  It is
  recommended to use the function names as opposed to `ALT0..5` unless you know exactly what you're doing, as quite a lot are reserved.
 A few useful classes are also included for digital interaction.  With the default python-mmap, you can expect a raw transition speed of ~20kHz, with the
 native extension, it's more like 80kHz on a Pi 3.
